@@ -523,36 +523,12 @@
     "type": "command_list",
     "named": true,
     "fields": {
-      "cmd": {
+      "entry": {
         "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "cmd_identifier",
-            "named": true
-          },
-          {
-            "type": "val_string",
-            "named": true
-          }
-        ]
-      },
-      "quoted_name": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "val_string",
-            "named": true
-          }
-        ]
-      },
-      "unquoted_name": {
-        "multiple": true,
-        "required": false,
-        "types": [
-          {
-            "type": "cmd_identifier",
+            "type": "command",
             "named": true
           }
         ]
@@ -571,7 +547,7 @@
     "fields": {
       "type": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "collection_type",
@@ -3309,7 +3285,7 @@
     "fields": {
       "entry": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "record_entry",
@@ -4687,6 +4663,10 @@
   },
   {
     "type": "(",
+    "named": false
+  },
+  {
+    "type": "()",
     "named": false
   },
   {
