@@ -11,6 +11,7 @@ enum TokenType {
     RAW_STRING_CONTENT,
     RAW_STRING_END,
     ERROR_SENTINEL,
+    _TERMINATOR,
 };
 
 typedef struct {
@@ -108,18 +109,50 @@ static bool scan_raw_string_end(TSLexer *lexer, Scanner *s) {
     return true;
 }
 
+static bool scan_newline_terminator(TSLexer *lexer, Scanner *s) {
+    skip_whitespace(lexer);
+    lexer->mark_end(lexer);
+    // skip comment lines
+    while (lexer->lookahead == '#') {
+        adv;
+        while (lexer->lookahead != '\n' && !eof) {
+            adv;
+        }
+        skip_whitespace(lexer);
+    }
+    if (lexer->lookahead != '|') {
+        lexer->result_symbol = _TERMINATOR;
+        return true;
+    }
+    return false;
+}
+
 bool tree_sitter_nu_external_scanner_scan(
     void *payload,
     TSLexer *lexer,
     const bool *valid_symbols
 ) {
+    char next = lexer->lookahead;
+    // printf("-------------------- next: %c %s\n", next, lexer->result_symbol);
+
     if (valid_symbols[ERROR_SENTINEL]) {
         return false;
     }
 
     Scanner *s = (Scanner *) payload;
 
-    if (valid_symbols[RAW_STRING_BEGIN] && s->level == 0) {
+    if (valid_symbols[_TERMINATOR] && (next == ';' || next == '\n' || next == '\r')) {
+        if (next == ';') {
+            // printf("22222222222222222222 next: %c\n", next);
+            lexer->result_symbol = _TERMINATOR;
+            adv;
+            return true;
+        }
+        // return false;
+        return scan_newline_terminator(lexer, s);
+    }
+
+    if (valid_symbols[RAW_STRING_BEGIN] && s->level == 0 && next == 'r') {
         lexer->result_symbol = RAW_STRING_BEGIN;
         return scan_raw_string_begin(lexer, s);
     }
@@ -129,7 +162,7 @@ bool tree_sitter_nu_external_scanner_scan(
     }
 
     if (valid_symbols[RAW_STRING_END] && s->level != 0
-            && lexer->lookahead == '\'') {
+            && next == '\'') {
         lexer->result_symbol = RAW_STRING_END;
         return scan_raw_string_end(lexer, s);
     }

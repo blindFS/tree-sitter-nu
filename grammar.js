@@ -11,21 +11,19 @@ module.exports = grammar({
     $._flag_value,
     $._item_expression,
     $._match_expression,
-    $._separator,
     $._spread_listish,
     $._spread_recordish,
     $._stringish,
-    $._terminator,
   ],
 
   externals: ($) => [
     $.raw_string_begin,
     $.raw_string_content,
     $.raw_string_end,
+    $._terminator,
   ],
 
   conflicts: ($) => [
-    [$._block_body, $.nu_script],
     [$._match_pattern_list, $.list_body],
     [$._match_pattern_list, $.val_list],
     [$._match_pattern_record, $._value],
@@ -35,31 +33,25 @@ module.exports = grammar({
     [$._match_pattern_value, $._value],
     [$.block, $.val_closure],
     [$.block, $.val_record, $.val_closure],
-    [$.command, $.record_entry],
-    [$.pipeline],
     [$.val_record, $.val_closure],
+    [$.command],
+    // [$.command, $.record_entry],
+    // [$.pipeline],
   ],
 
   rules: {
     /// File
 
-    nu_script: ($) => seq(optional($._repeat_newline), optional($.shebang), optional($._block_body)),
+    nu_script: ($) => seq(optional($.shebang), optional($._block_body)),
 
     shebang: ($) => seq("#!", /.*\r?\n/),
 
     ...block_body_rules(),
 
-    // ...parenthesized_body_rules(),
-
-    _block_body: ($) =>
-      general_body_rules(
-        '',
-        $._block_body_statement,
-        $._terminator,
-        null,
-        null,
-        $._terminator,
-      ),
+    _block_body: ($) => seq(
+      repeat(seq($._block_body_statement, $._terminator)),
+      $._block_body_statement,
+    ),
 
     /// Identifiers
     // NOTE:
@@ -120,9 +112,9 @@ module.exports = grammar({
     // manually controlled by adding the following to parenthesized rules
     _newline: (_$) => /\r?\n/,
     _repeat_newline: ($) => repeat1($._newline),
-    _space: (_$) => /[ \t]+/,
-    _separator: ($) => choice($._space, $._newline),
-    _terminator: ($) => choice(punc().semicolon, $._newline),
+    // _space: (_$) => /[ \t]+/,
+    // _separator: ($) => choice($._space, $._newline),
+    // _terminator: ($) => choice(punc().semicolon, $._newline),
     _pipe_separator: ($) =>
       repeat1(
         choice(punc().pipe, ...redir_pipe()),
@@ -137,7 +129,7 @@ module.exports = grammar({
       seq(
         punc().at,
         field('type', $.attribute_identifier),
-        repeat(seq($._space, optional($._cmd_arg))),
+        repeat($._cmd_arg),
       ),
 
     /// Top Level Items
@@ -409,7 +401,7 @@ module.exports = grammar({
       ),
 
     _match_expression: ($) =>
-      choice($._item_expression, prec.dynamic(10, $.block)),
+      choice($._item_expression, $.block),
 
     match_pattern: ($) =>
       choice(
@@ -493,7 +485,6 @@ module.exports = grammar({
       ),
 
     ctrl_try: _ctrl_try_rule(false),
-    // ctrl_try_parenthesized: _ctrl_try_rule(true),
 
     /// Pipelines
 
@@ -645,15 +636,6 @@ module.exports = grammar({
         $.expr_unary,
         $.expr_parenthesized,
       ),
-
-    // _expr_binary_expression_parenthesized: ($) =>
-    //   choice(
-    //     $._value,
-    //     $.val_range,
-    //     alias($.expr_binary_parenthesized, $.expr_binary),
-    //     $.expr_unary,
-    //     $.expr_parenthesized,
-    //   ),
 
     expr_parenthesized: ($) =>
       seq(
@@ -1018,7 +1000,7 @@ module.exports = grammar({
             'key',
             choice(
               // Without $.cmd_identifier, cannot correctly distinguish between record and closure
-              seq(alias($.cmd_identifier, $.identifier), repeat($._separator)),
+              alias($.cmd_identifier, $.identifier),
               alias($._record_key, $.identifier),
               $.val_string,
               $.val_interpolated,
@@ -1143,7 +1125,6 @@ module.exports = grammar({
     redirection: ($) =>
       seq(
         choice(...redir_append()),
-        $._space,
         field(
           'file_path',
           choice(alias($._unquoted_naive, $.val_string), $._stringish),
@@ -1152,7 +1133,7 @@ module.exports = grammar({
 
     _flag: ($) => choice($.short_flag, $.long_flag),
 
-    _flags_parenthesized: ($) => seq(repeat1($._separator), $._flag),
+    _flags_parenthesized: ($) => seq(/\s+/, $._flag),
 
     _flag_value: ($) =>
       choice(
@@ -1289,7 +1270,7 @@ function block_body_rules() {
 
     pipeline: ($) =>
       seq(
-        repeat(seq($.pipe_element, optional($._newline), $._pipe_separator)),
+        repeat(seq($.pipe_element, $._pipe_separator)),
         $.pipe_element,
       ),
     // pipeline: ($) => repeat1(choice($.pipe_element, $._pipe_separator)),
@@ -1456,16 +1437,13 @@ function _insert_newline($, sequence, begin = false, end = true) {
  */
 function _command_rule(parenthesized) {
   return (/** @type {any} */ $) => {
-    const sep = parenthesized ? $._separator : $._space;
-    return prec.right(
-      seq(
+    return seq(
         choice(
           field('head', seq(optional(punc().caret), $.cmd_identifier)),
           field('head', seq(punc().caret, $._stringish)),
         ),
-        repeat(seq(sep, optional($._cmd_arg))),
-      ),
-    );
+        repeat($._cmd_arg),
+      );
   };
 }
 
@@ -1474,8 +1452,7 @@ function _command_rule(parenthesized) {
  * @param {any} $
  */
 function _env_variable_rule(parenthesized, $) {
-  const sep = parenthesized ? $._separator : $._space;
-  return repeat(seq($.env_var, repeat1(sep)));
+  return repeat($.env_var);
 }
 
 /**
