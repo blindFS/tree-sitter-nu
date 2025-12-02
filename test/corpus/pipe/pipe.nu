@@ -466,3 +466,36 @@ do { [1] } |
                 (val_variable
                   (identifier))
                 (val_number)))))))))
+
+=====
+pipe-scanner-test
+=====
+
+1
+# comment
+| $in
+
+-----
+
+(nu_script
+  (pipeline
+    (pipe_element
+      (val_number))
+    (comment)
+    (pipe_element
+      (val_variable))))
+
+
+=====
+semicolon-scanner-test
+=====
+
+2;
+3
+
+-----
+
+(nu_script
+  (pipeline
+    (pipe_element))
+

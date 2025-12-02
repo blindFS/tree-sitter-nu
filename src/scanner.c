@@ -2,8 +2,6 @@
 #include "tree_sitter/alloc.h"
 #include <wctype.h>
 
-#define skip lexer->advance(lexer, true)
-#define adv lexer->advance(lexer, false)
 #define eof lexer->eof(lexer)
 
 enum TokenType {
@@ -14,6 +12,10 @@ enum TokenType {
     _TERMINATOR,
 };
 
+static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
+
+static inline void skip(TSLexer *lexer) { lexer->advance(lexer, true); }
+
 typedef struct {
     uint8_t level;
 } Scanner;
@@ -21,7 +23,7 @@ typedef struct {
 static uint8_t consume_chars(TSLexer *lexer, char c) {
     uint8_t count = 0;
     while (lexer->lookahead == c && !eof) {
-        adv;
+        advance(lexer);
         ++count;
     }
     return count;
@@ -29,7 +31,7 @@ static uint8_t consume_chars(TSLexer *lexer, char c) {
 
 static void skip_whitespace(TSLexer *lexer) {
     while (iswspace(lexer->lookahead) && !eof) {
-        skip;
+        skip(lexer);
     }
 }
 
@@ -75,10 +77,10 @@ static bool scan_raw_string_begin(TSLexer *lexer, Scanner *s) {
     if (lexer->lookahead != 'r') {
         return false;
     }
-    adv;
+    advance(lexer);
     uint8_t level = consume_chars(lexer, '#');
     if (lexer->lookahead == '\'') {
-        adv;
+        advance(lexer);
         s->level = level;
         return true;
     }
@@ -88,7 +90,7 @@ static bool scan_raw_string_begin(TSLexer *lexer, Scanner *s) {
 static bool scan_raw_string_content(TSLexer *lexer, Scanner *s) {
     while (!eof) {
         lexer->mark_end(lexer);
-        adv;
+        advance(lexer);
         uint8_t level = consume_chars(lexer, '#');
         if (level == s->level) {
             return true;
@@ -101,9 +103,9 @@ static bool scan_raw_string_content(TSLexer *lexer, Scanner *s) {
 static bool scan_raw_string_end(TSLexer *lexer, Scanner *s) {
     // HINT: scan_raw_string_content already determines the content's length
     // so we only advance to the end of the delimiter and return true.
-    adv;
+    advance(lexer);
     while (s->level > 0) {
-        adv;
+        advance(lexer);
         s->level--;
     }
     return true;
@@ -114,13 +116,13 @@ static bool scan_newline_terminator(TSLexer *lexer, Scanner *s) {
     lexer->mark_end(lexer);
     // skip comment lines
     while (lexer->lookahead == '#') {
-        adv;
+        advance(lexer);
         while (lexer->lookahead != '\n' && !eof) {
-            adv;
+            advance(lexer);
         }
         skip_whitespace(lexer);
     }
-    if (lexer->lookahead != '|') {
+    if (lexer->lookahead == '|') {
         lexer->result_symbol = _TERMINATOR;
         return true;
     }
@@ -145,7 +147,7 @@ bool tree_sitter_nu_external_scanner_scan(
         if (next == ';') {
             // printf("22222222222222222222 next: %c\n", next);
             lexer->result_symbol = _TERMINATOR;
-            adv;
+            advance(lexer);
             return true;
         }
         // return false;
