@@ -528,7 +528,31 @@
         "required": false,
         "types": [
           {
-            "type": "command",
+            "type": "cmd_identifier",
+            "named": true
+          },
+          {
+            "type": "val_string",
+            "named": true
+          }
+        ]
+      },
+      "quoted_name": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "val_string",
+            "named": true
+          }
+        ]
+      },
+      "unquoted_name": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "cmd_identifier",
             "named": true
           }
         ]

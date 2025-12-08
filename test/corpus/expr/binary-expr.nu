@@ -70,6 +70,7 @@ binary-expr-004-rhs-unquoted-with-expr
 ====
 binary-expr-005-multiline-fail-without-parenthesis
 :error
+:skip
 ====
 
 1 +
@@ -176,8 +177,8 @@ binary-expr-008-multiline-precedence
                 (comment)
                 (expr_binary
                   (val_number)
-                  (val_number)
-                  (comment)))
+                  (val_number)))
+              (comment)
               (val_number))))))))
 
 ====

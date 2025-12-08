@@ -446,8 +446,11 @@
                 "name": "_block_body_statement"
               },
               {
-                "type": "SYMBOL",
-                "name": "_terminator"
+                "type": "REPEAT1",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_terminator"
+                }
               }
             ]
           }
@@ -457,16 +460,11 @@
           "name": "_block_body_statement"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "_terminator"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_terminator"
+          }
         }
       ]
     },
@@ -1509,6 +1507,10 @@
         "type": "SYMBOL",
         "name": "_newline"
       }
+    },
+    "_space": {
+      "type": "PATTERN",
+      "value": "[ \\t]+"
     },
     "_terminator": {
       "type": "CHOICE",
@@ -3645,7 +3647,7 @@
             "name": "entry",
             "content": {
               "type": "SYMBOL",
-              "name": "command"
+              "name": "_command_name"
             }
           },
           {
@@ -10756,8 +10758,15 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "."
+          "type": "IMMEDIATE_TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": 20,
+            "content": {
+              "type": "STRING",
+              "value": "."
+            }
+          }
         },
         {
           "type": "CHOICE",
@@ -10915,8 +10924,25 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SYMBOL",
-            "name": "_cmd_arg"
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_space"
+              },
+              {
+                "type": "CHOICE",
+                "members": [
+                  {
+                    "type": "SYMBOL",
+                    "name": "_cmd_arg"
+                  },
+                  {
+                    "type": "BLANK"
+                  }
+                ]
+              }
+            ]
           }
         }
       ]
@@ -11017,19 +11043,6 @@
             "named": true,
             "value": "val_string"
           }
-        }
-      ]
-    },
-    "flag_value": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "_value"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "val_string"
         }
       ]
     },
@@ -12079,9 +12092,6 @@
     [
       "val_record",
       "val_closure"
-    ],
-    [
-      "command"
     ],
     [
       "pipeline"

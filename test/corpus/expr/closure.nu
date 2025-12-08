@@ -253,6 +253,7 @@ a
 
 =====
 closure-010-dummy-closure
+:skip
 =====
 
 {

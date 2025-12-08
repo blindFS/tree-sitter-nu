@@ -33,7 +33,6 @@ module.exports = grammar({
     [$.block, $.val_closure],
     [$.block, $.val_record, $.val_closure],
     [$.val_record, $.val_closure],
-    [$.command],
     // [$.command, $.record_entry],
     [$.pipeline],
   ],
@@ -66,9 +65,9 @@ module.exports = grammar({
 
     _block_body: ($) =>
       seq(
-        repeat(seq($._block_body_statement, $._terminator)),
+        repeat(seq($._block_body_statement, repeat1($._terminator))),
         $._block_body_statement,
-        optional($._terminator),
+        repeat($._terminator),
       ),
 
     /// Identifiers
@@ -130,7 +129,7 @@ module.exports = grammar({
     // manually controlled by adding the following to parenthesized rules
     _newline: (_$) => /\r?\n/,
     _repeat_newline: ($) => repeat1($._newline),
-    // _space: (_$) => /[ \t]+/,
+    _space: (_$) => /[ \t]+/,
     // _separator: ($) => choice($._space, $._newline),
     _terminator: ($) => choice(punc().semicolon, $._newline),
     _pipe_separator: ($) => repeat1(choice(punc().pipe, ...redir_pipe())),
@@ -507,7 +506,7 @@ module.exports = grammar({
     wild_card: (_$) => token('*'),
 
     _command_list_body: ($) =>
-      repeat1(choice(field('entry', $.command), punc().comma)),
+      repeat1(choice(field('entry', $._command_name), punc().comma)),
 
     command_list: ($) =>
       seq(
@@ -1064,7 +1063,11 @@ module.exports = grammar({
         $.val_string,
       );
 
-      return seq(punc().dot, path, optional($._path_suffix));
+      return seq(
+        token.immediate(prec(prec_map().higher, punc().dot)),
+        path,
+        optional($._path_suffix),
+      );
     },
 
     /// Single-use env variables: FOO=BAR cmd
@@ -1099,8 +1102,6 @@ module.exports = grammar({
         field('arg_str', alias($.unquoted, $.val_string)),
         field('arg_str', alias($._unquoted_with_expr, $.val_string)),
       ),
-
-    flag_value: ($) => choice($._value, $.val_string),
 
     redirection: ($) =>
       seq(
@@ -1422,7 +1423,7 @@ function _command_rule(parenthesized) {
         field('head', seq(optional(punc().caret), $.cmd_identifier)),
         field('head', seq(punc().caret, $._stringish)),
       ),
-      repeat($._cmd_arg),
+      repeat(seq($._space, optional($._cmd_arg))),
     );
   };
 }

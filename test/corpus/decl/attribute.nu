@@ -102,15 +102,15 @@ export def --env "path add" [
           (long_flag_identifier))
         flag_capsule: (flag_capsule
           (param_short_flag
-            name: (param_short_flag_identifier)))
-        (comment))
+            name: (param_short_flag_identifier))))
+      (comment)
       (parameter
         param_long_flag: (param_long_flag
           (long_flag_identifier))
         flag_capsule: (flag_capsule
           (param_short_flag
-            name: (param_short_flag_identifier)))
-        (comment)))
+            name: (param_short_flag_identifier))))
+      (comment))
     body: (block)))
 
 =====
