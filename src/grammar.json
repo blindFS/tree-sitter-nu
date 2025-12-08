@@ -319,6 +319,22 @@
         }
       ]
     },
+    "_pipe_separator_non_paren": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_newline"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_pipe_separator"
+        }
+      ]
+    },
     "pipeline": {
       "type": "SEQ",
       "members": [
@@ -333,7 +349,7 @@
               },
               {
                 "type": "SYMBOL",
-                "name": "_pipe_separator"
+                "name": "_pipe_separator_non_paren"
               }
             ]
           }
@@ -341,6 +357,79 @@
         {
           "type": "SYMBOL",
           "name": "pipe_element"
+        }
+      ]
+    },
+    "pipeline_parenthesized": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "pipe_element"
+                },
+                "named": true,
+                "value": "pipe_element"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_pipe_separator"
+              }
+            ]
+          }
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "pipe_element"
+          },
+          "named": true,
+          "value": "pipe_element"
+        }
+      ]
+    },
+    "_block_body_statement_parenthesized": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_ctrl_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "assignment"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stmt_let"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stmt_mut"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "stmt_const"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "pipeline_parenthesized"
+          },
+          "named": true,
+          "value": "pipeline"
         }
       ]
     },
@@ -366,6 +455,18 @@
         {
           "type": "SYMBOL",
           "name": "_block_body_statement"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_terminator"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -1408,6 +1509,19 @@
         "type": "SYMBOL",
         "name": "_newline"
       }
+    },
+    "_terminator": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": ";"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_newline"
+        }
+      ]
     },
     "_pipe_separator": {
       "type": "REPEAT1",
@@ -7720,7 +7834,7 @@
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "_block_body_statement"
+                "name": "_block_body_statement_parenthesized"
               },
               {
                 "type": "STRING",
@@ -7731,7 +7845,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_block_body_statement"
+          "name": "_block_body_statement_parenthesized"
         }
       ]
     },
@@ -11968,6 +12082,9 @@
     ],
     [
       "command"
+    ],
+    [
+      "pipeline"
     ]
   ],
   "precedences": [],
@@ -11983,10 +12100,6 @@
     {
       "type": "SYMBOL",
       "name": "raw_string_end"
-    },
-    {
-      "type": "SYMBOL",
-      "name": "_terminator"
     }
   ],
   "inline": [
