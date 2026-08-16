@@ -310,3 +310,81 @@ ls | where $foo.bar and $foo.baz
               name: (identifier)
               (cell_path
                 (path)))))))))
+
+=====
+row-condition-commands-001
+=====
+
+any name =~ foo
+all name =~ foo
+take until name =~ foo
+skip while name =~ foo
+chunk-by name =~ foo
+
+-----
+
+(nu_script
+  (pipeline
+    (pipe_element
+      (row_condition_command
+        (row_condition
+          (path)
+          (val_string)))))
+  (pipeline
+    (pipe_element
+      (row_condition_command
+        (row_condition
+          (path)
+          (val_string)))))
+  (pipeline
+    (pipe_element
+      (row_condition_command
+        (row_condition
+          (path)
+          (val_string)))))
+  (pipeline
+    (pipe_element
+      (row_condition_command
+        (row_condition
+          (path)
+          (val_string)))))
+  (pipeline
+    (pipe_element
+      (row_condition_command
+        (row_condition
+          (path)
+          (val_string))))))
+
+=====
+row-condition-commands-002
+=====
+
+any-foo
+all-foo
+take-until-foo
+skip-while-foo
+chunk-by-foo
+
+-----
+
+(nu_script
+  (pipeline
+    (pipe_element
+      (command
+        (cmd_identifier))))
+  (pipeline
+    (pipe_element
+      (command
+        (cmd_identifier))))
+  (pipeline
+    (pipe_element
+      (command
+        (cmd_identifier))))
+  (pipeline
+    (pipe_element
+      (command
+        (cmd_identifier))))
+  (pipeline
+    (pipe_element
+      (command
+        (cmd_identifier)))))
