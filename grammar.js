@@ -101,6 +101,9 @@ module.exports = grammar({
         ...Object.values(special()).map((x) =>
           seq(alias(x, '_prefix'), pattern_suffix),
         ),
+        ...row_condition_command_names().map((x) =>
+          seq(alias(x, '_prefix'), pattern_suffix),
+        ),
         seq(
           $._val_number_decimal,
           optional(
@@ -1710,16 +1713,7 @@ function _binary_predicate_rule(parenthesized) {
 function _row_condition_command_rule(parenthesized) {
   return (/** @type {any} */ $) => {
     const seq_array = [
-      choice(
-        'where',
-        'any',
-        'all',
-        'take until',
-        'take while',
-        'skip until',
-        'skip while',
-        'chunk-by',
-      ),
+      choice(...row_condition_command_names()),
       field(
         'predicate',
         choice(
@@ -1995,6 +1989,13 @@ function keyword() {
 
     in: 'in',
   };
+}
+
+/**
+ *
+ */
+function row_condition_command_names() {
+  return ['where', 'any', 'all', 'take until', 'take while', 'skip until', 'skip while', 'chunk-by'];
 }
 
 // modifier keywords
